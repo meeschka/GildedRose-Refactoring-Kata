@@ -59,11 +59,77 @@ describe("item quality should decrease twice as fast after sellIn date", functio
   })
 })
 
+//fails - not sure if this is a bug, or if I've misunderstood the way the component works. To look at further.
+describe("item quality should not be above 50", function() {
+  it("should be 50", function() {
+    const gildedRose = new Shop([new Item("Foo", 2, 55)])
+    const items = gildedRose.updateQuality()
+    expect(items[0].quality).toBe(50)
+  })
+})
+
 //item sellIn decreases
 describe("item sellin decreases after 1 day", function() {
   it("should decrease after quality updated", function() {
     const gildedRose = new Shop([new Item("foo", 2, 2)])
     const items = gildedRose.updateQuality()
     expect (items[0].sellIn).toBe(1)
+  })
+})
+
+//special cases
+describe("aged brie increases in quality over time", function() {
+  it("should increase in quality", function() {
+    const gildedRose = new Shop([new Item("Aged Brie", 2, 0)])
+    const items = gildedRose.updateQuality()
+    expect(items[0].quality).toBe(1)
+  })
+})
+
+describe("item quality should not be above 50 - aged brie", function() {
+  it("should be 50", function() {
+    const gildedRose = new Shop([new Item("Aged Brie", 2, 50)])
+    const items = gildedRose.updateQuality()
+    expect(items[0].quality).toBe(50)
+  })
+})
+
+describe("sulfuras should always have a quality of 80", function() {
+  it("should be 80", function() {
+    const gildedRose = new Shop([new Item("Sulfuras, Hand of Ragnaros", -1, 80)])
+    const items = gildedRose.updateQuality()
+    expect(items[0].quality).toBe(80)
+  })
+})
+
+describe("sulfuras sellIn date should not change", function() {
+  it("should be 1", function() {
+    const gildedRose = new Shop([new Item("Sulfuras, Hand of Ragnaros", 1, 80)])
+    const items = gildedRose.updateQuality()
+    expect(items[0].sellIn).toBe(1)
+  })
+})
+
+describe("concert ticket quality should increase by 2 when there are <10 days before sellIn", function() {
+  it("should be 1", function() {
+    const gildedRose = new Shop([new Item("Backstage passes to a TAFKAL80ETC concert", 9, 44)])
+    const items = gildedRose.updateQuality()
+    expect(items[0].quality).toBe(46)
+  })
+})
+
+describe("concert ticket quality should increase by 3 when there are <5 days before sellIn", function() {
+  it("should be 1", function() {
+    const gildedRose = new Shop([new Item("Backstage passes to a TAFKAL80ETC concert", 4, 44)])
+    const items = gildedRose.updateQuality()
+    expect(items[0].quality).toBe(47)
+  })
+})
+
+describe("concert ticket quality should be 0 after sellIn date", function() {
+  it("should be 1", function() {
+    const gildedRose = new Shop([new Item("Backstage passes to a TAFKAL80ETC concert", 0, 49)])
+    const items = gildedRose.updateQuality()
+    expect(items[0].quality).toBe(0)
   })
 })
