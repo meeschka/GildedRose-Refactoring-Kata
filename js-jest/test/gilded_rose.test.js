@@ -77,12 +77,28 @@ describe("item sellin decreases after 1 day", function() {
   })
 })
 
+describe("item sellin can be less than 0", function() {
+  it("should decrease after quality updated", function() {
+    const gildedRose = new Shop([new Item("foo", 0, 2)])
+    const items = gildedRose.updateQuality()
+    expect (items[0].sellIn).toBe(-1)
+  })
+})
+
 //special cases
 describe("aged brie increases in quality over time", function() {
   it("should increase in quality", function() {
     const gildedRose = new Shop([new Item("Aged Brie", 2, 0)])
     const items = gildedRose.updateQuality()
     expect(items[0].quality).toBe(1)
+  })
+})
+
+describe("aged brie increases in quality over time after sellIn date", function() {
+  it("should increase in quality", function() {
+    const gildedRose = new Shop([new Item("Aged Brie", -1, 0)])
+    const items = gildedRose.updateQuality()
+    expect(items[0].quality).toBe(2)
   })
 })
 
@@ -102,13 +118,17 @@ describe("sulfuras should always have a quality of 80", function() {
   })
 })
 
-describe("sulfuras sellIn date should not change", function() {
-  it("should be 1", function() {
-    const gildedRose = new Shop([new Item("Sulfuras, Hand of Ragnaros", 1, 80)])
-    const items = gildedRose.updateQuality()
-    expect(items[0].sellIn).toBe(1)
-  })
-})
+//the specs say that "Sulfuras", being a legendary item, never has to be sold or decreases in Quality
+//as we are not able to change the item component, we must give this item some sellIn date
+//to denote that we do not need to sell it, do we want to just never update it? Or update and never look at it?
+
+// describe("sulfuras sellIn date should not change", function() {
+//   it("should be 1", function() {
+//     const gildedRose = new Shop([new Item("Sulfuras, Hand of Ragnaros", 1, 80)])
+//     const items = gildedRose.updateQuality()
+//     expect(items[0].sellIn).toBe(1)
+//   })
+// })
 
 describe("concert ticket quality should increase by 2 when there are <10 days before sellIn", function() {
   it("should be 1", function() {
