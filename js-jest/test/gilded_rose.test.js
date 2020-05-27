@@ -7,9 +7,6 @@ const {shopItems} = require("./texttest_fixture.js");
 //desc ribe a shop with one item, with multiple items, thats one way to break it down
 
 
-
-//boundary cases
-
 describe("Shop component", function(){
   it("should have zero items in shop", function() {
     const gildedRose = new Shop([])
@@ -103,14 +100,10 @@ describe("updateQuality method", function() {
     })
 
     describe("sulfuras", function() {
-      const gildedRose = new Shop([new Item("Sulfuras, Hand of Ragnaros", 1, 80)])
-
-      it("should be 80 before sellIn date", function() {
-        const items = gildedRose.updateQuality()
-        expect(items[0].quality).toBe(80)
-      })
-
-      it("should be 80 after sellIn date", function() {
+      const gildedRose = new Shop([new Item("Sulfuras", 1, 80)])
+      //specs state that '"Sulfuras", being a legendary item, never has to be sold or decreases in Quality'
+      //Assume this means any Sulfuras, not just the Hand of Ragnaros
+      it("should be 80", function() {
         const items = gildedRose.updateQuality()
         expect(items[0].quality).toBe(80)
       })
@@ -118,6 +111,11 @@ describe("updateQuality method", function() {
       //the specs say that "Sulfuras", being a legendary item, never has to be sold or decreases in Quality
       //as we are not able to change the item component, we must give this item some sellIn date
       //to denote that we do not need to sell it, do we want to just never update it? Or update and never look at it?
+      
+      it("should not change sellIn date", function() {
+        const items = gildedRose.updateQuality()
+        expect(items[0].sellIn).toBe(1)
+      })
     })
 
     describe("concert tickets", function(){
@@ -149,7 +147,7 @@ describe("updateQuality method", function() {
         expect(items[0].quality).toBe(50)
       })
 
-      it("concert ticket quality should be 0 after sellIn date", function() {
+      it("should be 0 after sellIn date", function() {
         const items = gildedRose.updateQuality()
         expect(items[0].quality).toBe(0)
       })
