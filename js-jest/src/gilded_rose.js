@@ -5,35 +5,51 @@ class Item {
     this.quality = quality;
   }
 }
-
-class Shop {
-  constructor(items=[]){
-    this.items = items;
+class UpdateManager {
+  constructor(){
+    this._strategy = null;
   }
-  updateQuality() {
-    const updateAgedBrie = (item) => {
+
+  set strategy(strategy) {
+    this._strategy = strategy
+  }
+
+  doUpdate(item){
+    this._strategy.update(item)
+  }  
+}
+//currently mutating items, need to add immutability at some point
+class updateAgedBrie {
+  update(item) {
+    item.quality = item.quality >= 50 ? 50 : item.quality + 1
+    item.sellIn--
+  }
+}
+
+class updateSulfuras {
+  update(item) {
+    item.quality = 80
+  }
+}
+
+class updatePasses {
+  update(item) {
+    if (item.sellIn < 1) {
+      item.quality = 0
+    } else if (item.sellIn < 6) {
+      item.quality = item.quality < 47 ? item.quality + 3 : 50
+    } else if (item.sellIn < 11) {
+      item.quality = item.quality < 48 ? item.quality + 2 : 50
+    } else {
       item.quality = item.quality >= 50 ? 50 : item.quality + 1
     }
+    item.sellIn--
+  }
+}
 
-    const updateSulfuras = (item) => {
-      item.quality = 80
-      item.sellIn++
-    }
-
-    const updatePasses = (item) => {
-      if (item.sellIn < 1) {
-        item.quality = 0
-      } else if (item.sellIn < 6) {
-        item.quality = item.quality < 47 ? item.quality + 3 : 50
-      } else if (item.sellIn < 11) {
-        item.quality = item.quality < 48 ? item.quality + 2 : 50
-      } else {
-        item.quality = item.quality >= 50 ? 50 : item.quality + 1
-      }
-    }
-
-    const updateBasicItem = (item) => {
-      let modifier = item.sellIn > 0 ? 1 : 2
+class updateItem {
+  update(item) {
+    let modifier = item.sellIn > 0 ? 1 : 2
       if (item.name === 'Conjured'){
         modifier *= 2
       } 
@@ -43,17 +59,34 @@ class Shop {
       } else if (item.quality < 1) {
         item.quality = 0
       } else item.quality -= modifier
-    }
+
+      item.sellIn--
+  }
+}
+
+class Shop {
+  constructor(items=[]){
+    this.items = items;
+    this.updateManager = new UpdateManager();
+    this.updateAgedBrie = new updateAgedBrie();
+    this.updateSulfuras = new updateSulfuras();
+    this.updatePasses = new updatePasses();
+    this.updateItem = new updateItem();
+  }
+
+  updateQuality() {
 
     this.items.forEach(item => {
       if (item.name === 'Aged Brie') {
-        updateAgedBrie(item)
+        this.updateManager.strategy=this.updateAgedBrie
       } else if (/[Ss]ulfuras/.test(item.name)) {
-        updateSulfuras(item)
+        this.updateManager.strategy=this.updateSulfuras
       } else if (/[Bb]ackstage [Pp]asses/.test(item.name)) {
-        updatePasses(item)
-      } else updateBasicItem(item)
-      item.sellIn--
+        this.updateManager.strategy=this.updatePasses
+      } else {
+        this.updateManager.strategy=this.updateItem
+      }
+      this.updateManager.doUpdate(item)
       return item
     })
 
