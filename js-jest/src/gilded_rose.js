@@ -15,52 +15,52 @@ class UpdateManager {
   }
 
   doUpdate(item){
-    this._strategy.update(item)
+    return(this._strategy.update(item))
   }  
 }
 //currently mutating items, need to add immutability at some point
 class updateAgedBrie {
   update(item) {
-    item.quality = item.quality >= 50 ? 50 : item.quality + 1
-    item.sellIn--
+    const quality = item.quality >= 50 ? 50 : item.quality + 1
+    return(new Item(item.name, item.sellIn--, quality))
   }
 }
-
 class updateSulfuras {
   update(item) {
-    item.quality = 80
+    return(new Item(item.name, item.sellIn, 80))
   }
 }
 
 class updatePasses {
   update(item) {
+    let quality = item.quality
     if (item.sellIn < 1) {
-      item.quality = 0
+      quality = 0
     } else if (item.sellIn < 6) {
-      item.quality = item.quality < 47 ? item.quality + 3 : 50
+      quality = quality < 47 ? quality + 3 : 50
     } else if (item.sellIn < 11) {
-      item.quality = item.quality < 48 ? item.quality + 2 : 50
+      quality = quality < 48 ? quality + 2 : 50
     } else {
-      item.quality = item.quality >= 50 ? 50 : item.quality + 1
+      quality = quality >= 50 ? 50 : quality + 1
     }
-    item.sellIn--
+    return (new Item(item.name, item.sellIn--, quality))
   }
 }
 
 class updateItem {
   update(item) {
     let modifier = item.sellIn > 0 ? 1 : 2
-      if (item.name === 'Conjured'){
-        modifier *= 2
-      } 
+    if (item.name === 'Conjured'){
+      modifier *= 2
+    } 
+    let quality = item.quality
+    if (quality > 50) {
+      quality = 50
+    } else if (quality < 1) {
+      quality = 0
+    } else quality -= modifier
 
-      if (item.quality > 50) {
-        item.quality = 50
-      } else if (item.quality < 1) {
-        item.quality = 0
-      } else item.quality -= modifier
-
-      item.sellIn--
+    return(new Item(item.name, item.sellIn--, quality))
   }
 }
 
@@ -75,8 +75,8 @@ class Shop {
   }
 
   updateQuality() {
-
-    this.items.forEach(item => {
+    let newItems = []
+    this.items.forEach((item) => {
       if (item.name === 'Aged Brie') {
         this.updateManager.strategy=this.updateAgedBrie
       } else if (/[Ss]ulfuras/.test(item.name)) {
@@ -86,11 +86,10 @@ class Shop {
       } else {
         this.updateManager.strategy=this.updateItem
       }
-      this.updateManager.doUpdate(item)
-      return item
+      newItems.push(this.updateManager.doUpdate(item))
     })
-
-    return this.items;
+    this.items = newItems
+    return this.items
   }
 }
 

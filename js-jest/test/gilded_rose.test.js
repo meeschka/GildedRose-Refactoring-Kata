@@ -26,6 +26,7 @@ describe("Shop component", function(){
   //assume that items added with quality > 50 are revised down to 50
   it("should not contain an item with quality > 50", function() {
     const gildedRose = new Shop([new Item("Foo", 2, 55)])
+    const items = gildedRose.updateQuality()
     expect(items[0].quality).toBe(50)
   })
 })
