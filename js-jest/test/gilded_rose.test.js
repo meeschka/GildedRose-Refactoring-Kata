@@ -29,6 +29,14 @@ describe("Shop component", function(){
     const items = gildedRose.updateQuality()
     expect(items[0].quality).toBe(50)
   })
+
+  //as we can't handle the item constructor, there is no way to throw an error when items are
+  //created that do not follow the prescribed syntax. I've made it so the program throws an error to alert
+  //the user that one of their items is faulty
+  it("should gracefully handle bad arguments", function(){
+    const gildedRose = new Shop([new Item("foo", "Bar", "Baz")])
+    expect(() => gildedRose.updateQuality()).toThrow()
+  })
 })
 
 describe("updateQuality method", function() {

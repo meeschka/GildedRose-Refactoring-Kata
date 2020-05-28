@@ -77,8 +77,11 @@ class Shop {
   }
 
   updateQuality() {
-    let newItems = []
-    this.items.forEach((item) => {
+    let newItems = this.items.map((item) => {
+      if (typeof item.quality !== 'number' || typeof item.sellIn !== 'number') {
+        throw new Error('expected numeric arguments')
+      }
+
       if (item.name === 'Aged Brie') {
         this.UpdateManager.strategy=this.UpdateAgedBrie
       } else if (/[Ss]ulfuras/.test(item.name)) {
@@ -88,7 +91,7 @@ class Shop {
       } else {
         this.UpdateManager.strategy=this.UpdateItem
       }
-      newItems.push(this.UpdateManager.doUpdate(item))
+      return(this.UpdateManager.doUpdate(item))
     })
     this.items = newItems
     return this.items
