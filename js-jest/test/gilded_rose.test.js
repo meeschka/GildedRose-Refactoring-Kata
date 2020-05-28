@@ -1,4 +1,4 @@
-const {Shop, Item} = require("../src/gilded_rose");
+const {Shop, Item, UpdateAgedBrie, UpdateSulfuras, UpdatePasses, UpdateItem} = require("../src/gilded_rose");
 const {shopItems} = require("./texttest_fixture.js");
 //consider breaking into interface and methods
 //what if the item is bad? will it do multiple items? grep?
@@ -74,7 +74,7 @@ describe("updateQuality method", function() {
     })
   })
 
-  describe("special cases", function() {
+  describe("special cases - integration tests", function() {
     describe("aged brie", function() {
 
       const gildedRose = new Shop([new Item("Aged Brie", 1, 48)])
@@ -82,21 +82,6 @@ describe("updateQuality method", function() {
       it("should increase in quality", function() {
         const items = gildedRose.updateQuality()
         expect(items[0].quality).toBe(49)
-      })
-
-      //as written, aged brie increases in quality at twice the base rate after sellIn date
-      //it is unclear if this is the intended behaviour
-      //based on the rules 'Once the sell by date has passed, Quality degrades twice as fast' and
-      //'"Aged Brie" actually increases in Quality the older it gets', as well as the assumed linear nature of cheese aging,
-      //I've elected for the rate of cheese quality increase to remain constant, even after the sellIn date
-      it("should increase in quality after sellIn date", function() {
-        const items = gildedRose.updateQuality()
-        expect(items[0].quality).toBe(50)
-      })
-
-      it("should not increase above 50", function() {
-        const items = gildedRose.updateQuality()
-        expect(items[0].quality).toBe(50)
       })
     })
 
@@ -108,15 +93,6 @@ describe("updateQuality method", function() {
         const items = gildedRose.updateQuality()
         expect(items[0].quality).toBe(80)
       })
-
-      //the specs say that "Sulfuras", being a legendary item, never has to be sold or decreases in Quality
-      //as we are not able to change the item component, we must give this item some sellIn date
-      //to denote that we do not need to sell it, do we want to just never update it? Or update and never look at it?
-      
-      it("should not change sellIn date", function() {
-        const items = gildedRose.updateQuality()
-        expect(items[0].sellIn).toBe(1)
-      })
     })
 
     describe("concert tickets", function(){
@@ -126,32 +102,104 @@ describe("updateQuality method", function() {
         const items = gildedRose.updateQuality()
         expect(items[0].quality).toBe(31)
       })
-      
-      it("should increase by 2 when there are 6-10 days left", function() {
-        const items = gildedRose.updateQuality()
-        expect(items[0].quality).toBe(33)
-      })
+    })
+  })
+})
 
-      it("should increase by 3 when there are 0-5 days before sellIn", function() {
-        for (let i =0; i<4; i++){
-          gildedRose.updateQuality()
-        }
-        const items = gildedRose.updateQuality()
-        expect(items[0].quality).toBe(33+4*2+3)
-      })
+describe("updateAgedBrie", function(){
+  let item = new Item("Aged Brie", 1, 48)
+  const updateAgedBrie = new UpdateAgedBrie();
 
-      it("should not increase above 50", function() {
-        for (let i =0; i<3; i++){
-          gildedRose.updateQuality()
-        }
-        const items = gildedRose.updateQuality()
-        expect(items[0].quality).toBe(50)
-      })
+  it("should increase in quality", function() {
+    item = updateAgedBrie.update(item)
+    expect(item.quality).toBe(49)
+  })
 
-      it("should be 0 after sellIn date", function() {
-        const items = gildedRose.updateQuality()
-        expect(items[0].quality).toBe(0)
-      })
+  it("should increase in quality after sellIn date", function() {
+    item = updateAgedBrie.update(item)
+    expect(item.quality).toBe(50)
+  })
+
+  it("should not increase above 50", function() {
+    item = updateAgedBrie.update(item)
+    expect(item.quality).toBe(50)
+  })
+})
+
+describe("updateSulfuras", function() {
+  let item = new Item("Sulfuras", 1, 80)
+  const updateSulfuras = new UpdateSulfuras()
+
+  it("should be 80", function() {
+    item = updateSulfuras.update(item)
+    expect(item.quality).toBe(80)
+  })
+
+  it("should not change sellIn date", function() {
+    item = updateSulfuras.update(item)
+    expect(item.sellIn).toBe(1)
+  })
+})
+
+describe("updatePasses", function(){
+  let item = new Item("Backstage passes to a TAFKAL80ETC concert", 11, 30)
+  const updatePasses = new UpdatePasses()
+  
+  it("should increase by 1 when there are >10 days left", function() {
+    item = updatePasses.update(item)
+    expect(item.quality).toBe(31)
+  })
+  
+  it("should increase by 2 when there are 6-10 days left", function() {
+    item = updatePasses.update(item)
+    expect(item.quality).toBe(33)
+  })
+
+  it("should increase by 3 when there are 0-5 days before sellIn", function() {
+    for (let i =0; i<4; i++){
+      item = updatePasses.update(item)
+    }
+    item = updatePasses.update(item)
+    expect(item.quality).toBe(33+4*2+3)
+  })
+
+  it("should not increase above 50", function() {
+    for (let i =0; i<3; i++){
+      item = updatePasses.update(item)
+    }
+    item = updatePasses.update(item)
+    expect(item.quality).toBe(50)
+  })
+
+  it("should be 0 after sellIn date", function() {
+    item = updatePasses.update(item)
+    expect(item.quality).toBe(0)
+  })
+})
+
+describe("updateQuality method", function() {
+  describe("changes to quality", function() {
+    let item = new Item("foo", 2, 4)
+    const updateItem = new UpdateItem()
+
+    it("should decrease after quality updated", function() {
+      item = updateItem.update(item)
+      expect (item.quality).toBe(3)
+    })
+  
+    it("should decrease after quality updated a second time", function() {
+      item = updateItem.update(item)
+      expect (item.quality).toBe(2)
+    })
+  
+    it("should decrease by two after sellIn date", function() {
+      item = updateItem.update(item)
+      expect (item.quality).toBe(0)
+    })
+  
+    it("should stop at quality = 0 ", function() {
+      item = updateItem.update(item)
+      expect (item.quality).toBe(0)
     })
   })
 })
