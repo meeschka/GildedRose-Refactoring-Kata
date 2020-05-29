@@ -23,25 +23,22 @@ describe("Shop component", function(){
     expect (gildedRose.items.length).toBe(shopItems.length)
   })
 
-  //assume that items added with quality > 50 are revised down to 50
+  //throw error if shop is assigned items ith value > 50
   it("should not contain an item with quality > 50", function() {
-    const gildedRose = new Shop([new Item("Foo", 2, 55)])
-    const items = gildedRose.updateQuality()
-    expect(items[0].quality).toBe(50)
+    expect(()=>new Shop([new Item("Foo", 2, 55)])).toThrow()
   })
 
   //as we can't handle the item constructor, there is no way to throw an error when items are
   //created that do not follow the prescribed syntax. I've made it so the program throws an error to alert
   //the user that one of their items is faulty
   it("should gracefully handle bad arguments", function(){
-    const gildedRose = new Shop([new Item("foo", "Bar", "Baz")])
-    expect(() => gildedRose.updateQuality()).toThrow()
+    expect(() => new Shop([new Item("foo", "Bar", "Baz")])).toThrow()
   })
 })
 
 describe("updateQuality method", function() {
   describe("changes to quality", function() {
-    const gildedRose = new Shop([new Item("foo", 2, 4), new Item("bar", 5, 10)])
+    const gildedRose = new Shop([new Item("foo", 2, 4), new Item("bar", 5, 10), new Item("Conjured Sword", 6, 20)])
 
     it("should decrease after quality updated", function() {
       const items = gildedRose.updateQuality()
@@ -53,10 +50,6 @@ describe("updateQuality method", function() {
       expect (items[0].quality).toBe(2)
     })
 
-    if("should also decrease the quality of the second item", function() {
-      expect (item[1].quality.toBe(8))
-    })
-  
     it("should decrease by two after sellIn date", function() {
       const items = gildedRose.updateQuality()
       expect (items[0].quality).toBe(0)
@@ -66,6 +59,17 @@ describe("updateQuality method", function() {
       const items = gildedRose.updateQuality()
       expect (items[0].quality).toBe(0)
     })
+    it("should also decrease the quality of the second item", function() {
+      const items = gildedRose.updateQuality()
+      expect (items[1].quality).toBe(5)
+    })
+
+    it("should decrease quality of conjured items twice as fast", function() {
+      const items = gildedRose.updateQuality()
+      expect (items[2].quality).toBe(8)
+    })
+  
+    
   })
 
   describe("changes to sellIn date", function() {

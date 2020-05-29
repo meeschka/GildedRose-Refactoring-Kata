@@ -51,7 +51,7 @@ class UpdatePasses {
 class UpdateItem {
   update(item) {
     let modifier = item.sellIn > 0 ? 1 : 2
-    if (item.name === 'Conjured'){
+    if (/[Cc]onjured/.test(item.name)){
       modifier *= 2
     } 
     const sellIn = item.sellIn - 1
@@ -66,6 +66,24 @@ class UpdateItem {
   }
 }
 
+const checkStartingItemQuality = (items) => {
+  items.forEach(item => {
+    if (item.quality > 50 && !/[Ss]ulfuras/.test(item.name)) {
+      throw new Error('items should have quality less than 50')
+    }
+  })
+  return true
+}
+
+const checkItemQualityAndSellInType = (items) => {
+  items.forEach(item => {
+    if (typeof item.quality !== 'number' || typeof item.sellIn !== 'number') {
+      throw new Error('expected numeric arguments')
+    }
+  })
+  return true
+}
+
 class Shop {
   constructor(items=[]){
     this.items = items;
@@ -74,14 +92,13 @@ class Shop {
     this.UpdateSulfuras = new UpdateSulfuras();
     this.UpdatePasses = new UpdatePasses();
     this.UpdateItem = new UpdateItem();
+
+    checkStartingItemQuality(items)
+    checkItemQualityAndSellInType(items)
   }
 
   updateQuality() {
     let newItems = this.items.map((item) => {
-      if (typeof item.quality !== 'number' || typeof item.sellIn !== 'number') {
-        throw new Error('expected numeric arguments')
-      }
-
       if (item.name === 'Aged Brie') {
         this.UpdateManager.strategy=this.UpdateAgedBrie
       } else if (/[Ss]ulfuras/.test(item.name)) {
